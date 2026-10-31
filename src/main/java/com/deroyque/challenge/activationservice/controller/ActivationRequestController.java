@@ -32,9 +32,7 @@ public class ActivationRequestController {
 
     // Cria uma solicitação de ativação ou retorna o registro existente em caso de repetição idempotente
     @PostMapping
-    public ResponseEntity<ActivationRequestResponseDto> criarSolicitacao(
-            @Valid @RequestBody CreateActivationRequestDto dto
-    ) {
+    public ResponseEntity<ActivationRequestResponseDto> criarSolicitacao(@Valid @RequestBody CreateActivationRequestDto dto) {
         CreationResult resultado = service.criarOuObterSolicitacao(dto);
         ActivationRequestResponseDto resposta = ActivationRequestResponseDto.converterDeEntidade(resultado.request());
 

@@ -4,3 +4,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+
+activation:
+  worker:
+    scheduler-enabled: false

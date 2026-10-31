@@ -16,3 +16,7 @@ spring:
 activation:
   provider:
     base-url: http://localhost:8090
+
+logging:
+  file:
+    name: logs/activation-audit.log

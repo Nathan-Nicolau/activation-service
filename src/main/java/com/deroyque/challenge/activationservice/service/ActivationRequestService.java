@@ -29,10 +29,11 @@ public class ActivationRequestService {
      * inclusive quando múltiplas requisições idênticas chegam simultaneamente em paralelo.
      */
     public CreationResult criarOuObterSolicitacao(CreateActivationRequestDto dto) {
+        log.info("[SERVICE] Recebida solicitação de ativação: externalId={}, customerId={}, productCode={}", dto.externalId(), dto.customerId(), dto.productCode());
         try {
             return transactionHelper.tentarCriarEmNovaTransacao(dto);
         } catch (DataIntegrityViolationException ex) {
-            log.info("Requisição concorrente detectada para o externalId={}. Recuperando registro vencedor.", dto.externalId());
+            log.warn("[SERVICE] Colisão de concorrência detectada no banco para externalId={}. Recuperando registro vencedor.", dto.externalId());
             return transactionHelper.buscarExistenteAposConflitoConcorrente(dto);
         }
     }
@@ -40,6 +41,7 @@ public class ActivationRequestService {
     // Busca uma solicitação pelo seu ID único ou lança exceção 404 caso não exista
     @Transactional(readOnly = true)
     public ActivationRequestResponseDto buscarPorId(UUID id) {
+        log.info("[SERVICE] Consultando solicitação por id={}", id);
         ActivationRequest solicitacao = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitação de ativação não encontrada para o id: " + id));
         return ActivationRequestResponseDto.converterDeEntidade(solicitacao);
@@ -52,7 +54,7 @@ public class ActivationRequestService {
             String customerId,
             Pageable pageable
     ) {
-        return repository.buscarPorFiltros(status, customerId, pageable)
-                .map(ActivationRequestResponseDto::converterDeEntidade);
+        log.info("[SERVICE] Listando solicitações: filtroStatus={}, filtroCustomerId={}, pagina={}, tamanho={}", status, customerId, pageable.getPageNumber(), pageable.getPageSize());
+        return repository.buscarPorFiltros(status, customerId, pageable).map(ActivationRequestResponseDto::converterDeEntidade);
     }
 }

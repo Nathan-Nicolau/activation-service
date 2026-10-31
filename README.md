@@ -1,6 +1,6 @@
 # Serviço de Ativação de Produtos (`activation-service`)
 
-Este projeto é a minha implementação para o desafio técnico do serviço de ativação de produtos de clientes, construído com **Java 21** e **Spring Boot**.
+Este projeto é a minha implementação para o desafio técnico do serviço de ativação de produtos de clientes, construído com **Java 21**, **Spring Boot** e **Vaadin**.
 
 A ideia principal durante o desenvolvimento foi entregar uma solução simples, direta e fácil de manter, focando nos pontos mais importantes do desafio: **controle de duplicidade/concorrência**, **idempotência** e **processamento assíncrono sem segurar conexão de banco aberta**.
 
@@ -17,7 +17,7 @@ Na raiz do projeto (`activation-service`), basta rodar:
 ```bash
 docker compose up --build -d
 ```
-- Aplicação disponível em: `http://localhost:8090`
+- Aplicação (API REST + Painel Web Vaadin): `http://localhost:8090`
 - PostgreSQL na porta `5432` (banco `activation_db`, usuário `postgres`, senha `postgres`).
 
 *(Usei a porta `8090` para evitar conflito com outros serviços locais na `8080`).*
@@ -31,6 +31,7 @@ docker compose up --build -d
    ```bash
    ./mvnw spring-boot:run
    ```
+3. Acesse no navegador **`http://localhost:8090`** para usar a interface visual do **Vaadin** (ou use o Postman nas rotas `/api/v1/requests`).
 
 ### Como Rodar os Testes Automatizados
 Os testes usam o **H2 em memória no modo PostgreSQL** com Flyway ativo (não precisa de Docker rodando):
@@ -40,7 +41,13 @@ Os testes usam o **H2 em memória no modo PostgreSQL** com Flyway ativo (não pr
 
 ---
 
-## 2. Testando a API (Postman / cURL)
+## 2. Testando a API (Interface Web Vaadin ou Postman / cURL)
+
+Para facilitar a avaliação e os testes sem precisar montar requisições manualmente, adicionei uma **interface web simples com Vaadin** acessível diretamente em **`http://localhost:8090`**, dividida em duas abas no menu superior:
+- **Solicitações de Ativação:** permite criar novas solicitações escolhendo os cenários do provedor externo (`INTERNET-500`, `ERR-400-INVALID`, `ERR-500-SERVER`, `ERR-TIMEOUT`), testar o comportamento de idempotência (`201 Created`, `200 OK` ou `409 Conflict`) e consultar os registros existentes com filtros por `status`, `customerId`, busca por `UUID` e paginação.
+- **Logs de Auditoria (`[SERVICE]`):** exibe em tempo real os eventos gravados no arquivo `logs/activation-audit.log` formatados em tabela e terminal, permitindo filtrar apenas os eventos de negócio (`[SERVICE]` e `[SERVICE][ERRO]`), filtrar por nível (`INFO`, `WARN`, `ERROR`) ou buscar por `externalId`/`UUID`.
+
+Caso prefira testar diretamente via **Postman** ou **cURL**, os endpoints REST são:
 
 ### Criar uma solicitação (`POST /api/v1/requests`)
 ```bash
@@ -64,7 +71,7 @@ curl -i "http://localhost:8090/api/v1/requests?status=COMPLETED&customerId=CUST-
 ```
 
 > **Simulando cenários do Provedor Externo (`MockProviderController`):**  
-> Criei um endpoint simulado na rota `/provider/v1/activate`. Pelo `productCode` enviado no `POST`, é possível testar cada retorno:
+> Criei um endpoint simulado na rota `/provider/v1/activate`. Pelo `productCode` enviado no `POST` (ou selecionado no ComboBox da tela), é possível testar cada retorno:
 > - **Produto normal** (ex.: `"INTERNET-500"`): responde `200 OK` e muda para **`COMPLETED`**.
 > - **Iniciando com `"ERR-400"`**: simula `400 Bad Request` e vai direto para **`FAILED`**.
 > - **Iniciando com `"ERR-500"`**: simula erro `500`, tenta 3 vezes e marca **`FAILED`**.
@@ -118,4 +125,4 @@ Para não travar o `POST` esperando o provedor externo e **não manter transaç�
 
 ## 6. Uso de IA
 
-Utilizei IA como apoio para discutir as decisões de arquitetura (optando por uma solução mais enxuta com `@Scheduled` em vez de mensageria complexa), estruturar o teste de concorrência com `CountDownLatch` e revisar a documentação. Todo o código e fluxos foram revisados e testados manualmente via Docker e Postman.
+Utilizei IA como apoio para discutir as decisões de arquitetura (optando por uma solução mais enxuta com `@Scheduled` em vez de mensageria complexa), estruturar o teste de concorrência com `CountDownLatch` e revisar a documentação. Todo o código e fluxos foram revisados e testados manualmente via Docker, Vaadin UI e Postman.

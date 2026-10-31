@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.deroyque.challenge.activationservice.controller")
 public class GlobalExceptionHandler {
 
     // Trata erros de validação dos campos da requisição (@Valid) retornando HTTP 400
